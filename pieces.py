@@ -73,4 +73,5 @@ class Piece:
         self.photo_image = ImageTk.PhotoImage(self.image)
 
     def __str__(self):
-        return str(self.kind) + str(self.color)
+        return "P,"
+        return str(self.kind) + " " + str(self.color) + " " + str(self.loc)

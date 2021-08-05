@@ -53,107 +53,32 @@ def stick_piece_on_cursor(event):
 
 
 def move(piece, loc):
-    rank, file = loc
     canvas.delete(piece.id)
-    if board.is_legal_move(piece, (rank, file)):  # if it is a legal move
-        loc = piece.loc
-        # check if the move is en passant
-        if piece.kind == PAWN and (rank, file) == board.en_passant:
-            if piece.color == WHITE:
-                board.grid[rank + 1][file] = None
-            else:  # if black
-                board.grid[rank - 1][file] = None
+    pieces = board.move(piece, loc)
+    for p in pieces:
+        canvas.delete(p.id)
+        p.id = canvas.create_image(get_loc_center(p.loc), anchor='center', image=p.photo_image)
 
-        # check if the move would create possibility for en passant
-        board.en_passant = None
-        if piece.kind == PAWN:
-            if piece.loc[0] == 1 and rank == 3:
-                board.en_passant = (2, file)
-            elif piece.loc[0] == 6 and rank == 4:
-                board.en_passant = (5, file)
-
-        # move the peace
-        piece.id = canvas.create_image(get_loc_center((rank, file)), anchor='center', image=piece.photo_image)
-        board.grid[rank][file] = piece
-        piece.loc = (rank, file)
-        if board.in_check(piece.color):
-            canvas.delete(piece.id)
-            rank, file = loc
-            piece.id = canvas.create_image(get_loc_center((rank, file)), anchor='center', image=piece.photo_image)
-            board.grid[rank][file] = piece
-            piece.loc = (rank, file)
-            pass
-        else:
-            # check if just castle, if so, move the rook to the correct position
-            if piece.kind == KING:
-                if loc == (7, 4):
-                    if piece.loc == (7, 6):
-                        board.grid[7][5] = board.grid[7][7]
-                        board.grid[7][7] = None
-                        canvas.delete(board.grid[7][5].id)
-                        board.grid[7][5].id = canvas.create_image(get_loc_center((7, 5)), anchor='center',
-                                                                  image=board.grid[7][5].photo_image)
-                    if piece.loc == (7, 2):
-                        board.grid[7][3] = board.grid[7][3]
-                        board.grid[7][0] = None
-                        canvas.delete(board.grid[7][3].id)
-                        board.grid[7][3].id = canvas.create_image(get_loc_center((7, 3)), anchor='center',
-                                                                  image=board.grid[7][3].photo_image)
-
-                if loc == (0, 4):
-                    if piece.loc == (0, 6):
-                        board.grid[0][5] = board.grid[0][7]
-                        board.grid[0][7] = None
-                        canvas.delete(board.grid[0][5].id)
-                        board.grid[0][5].id = canvas.create_image(get_loc_center((0, 5)), anchor='center',
-                                                                  image=board.grid[0][5].photo_image)
-                    if piece.loc == (0, 2):
-                        board.grid[0][3] = board.grid[0][3]
-                        board.grid[0][0] = None
-                        canvas.delete(board.grid[0][3].id)
-                        board.grid[0][3].id = canvas.create_image(get_loc_center((0, 3)), anchor='center',
-                                                                  image=board.grid[0][3].photo_image)
-
-            # change castle availability
-            if piece.kind == KING:
-                if piece.color == WHITE:
-                    board.w_castle = [False, False]
-                else:
-                    board.b_castle = [False, False]
-            elif piece.color == WHITE:
-                if loc == (7, 0):
-                    board.w_castle[1] = False
-                elif loc == (7, 7):
-                    board.w_castle[0] = False
-            else:
-                if loc == (0, 0):
-                    board.b_castle[1] = False
-                elif loc == (0, 7):
-                    board.b_castle[0] = False
-
-            # pawn promotion
-            if piece.kind == PAWN and piece.loc[0] == 0 or piece.loc[0] == 7:
-                promote_pawn(piece)
-            board.change_active_color()
+    if board.check_mate(board.active_color):
+        game_end()
 
 
+def game_end():
+    # TODO
+    print("check mated")
+    pass
 
-
-    else:  # move it back to the original position
-        piece.id = canvas.create_image(get_loc_center(piece.loc), anchor='center',
-                                       image=piece.photo_image)
-        board.grid[piece.loc[0]][piece.loc[1]] = piece
 
 def promote_pawn(pawn):
+    # TODO
     pass
+
 
 def on_press(event):
     rank, file = get_loc_on_board(event.x, event.y)
     global piece
     piece = board.grid[rank][file]
-    if piece is not None and board.active_color == piece.color:
-        board.grid[rank][file] = None
-    else:
+    if piece is not None and board.active_color != piece.color:
         piece = None
 
 

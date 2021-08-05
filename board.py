@@ -1,7 +1,6 @@
 from pieces import *
 
 
-
 class Board:
     def __init__(self, fen=None):
         # initialize an empty board
@@ -119,7 +118,6 @@ class Board:
                 iterator = ((1, 1), (-1, -1), (1, -1), (-1, 1))
             if piece.kind == QUEEN:
                 iterator = itertools.chain(itertools.permutations(range(-1, 2), 2), [(1, 1), (-1, -1)])
-
             for r, f in iterator:
                 for i in range(1, 8):
                     if rank + i * r < 0 or rank + i * r > 7 or file + i * f < 0 or file + i * f > 7:
@@ -132,16 +130,114 @@ class Board:
                     else:
                         break
 
+
         return moves
 
     def check_mate(self, color):
         if not self.in_check(color):
             return False
         for rank in self.grid:
-            for block in rank:
-                if block is not None and block.color == color:
-                    #TODO
-                    pass
+            for p in rank:
+                if p is not None and p.color == color:
+                    moves = self.get_legal_moves(p)
+                    for move in moves:
+                        piece_at_move = self.grid[move[0]][move[1]]
+                        loc = p.loc
+                        self.grid[move[0]][move[1]] = p
+                        p.loc = move
+                        self.grid[p.loc[0]][p.loc[1]] = None
+                        if not self.in_check(color):
+                            p.loc = loc
+                            self.grid[move[0]][move[1]] = piece_at_move
+                            self.grid[p.loc[0]][p.loc[1]] = p
+                            return False
+                        self.grid[move[0]][move[1]] = piece_at_move
+                        p.loc = loc
+                        self.grid[p.loc[0]][p.loc[1]] = p
+        return True
+
+    def move(self, piece, loc):
+        rank, file = loc
+        pieces_moved = [piece]
+        if self.is_legal_move(piece, loc):  # if it is a legal move
+            # check if the move was en passant
+            original_loc = piece.loc
+            if piece.kind == PAWN and (rank, file) == self.en_passant:
+                if piece.color == WHITE:
+                    pieces_moved.append(self.grid[rank + 1][file])
+                    self.grid[rank + 1][file] = None
+                else:  # if black
+                    pieces_moved.append(self.grid[rank - 1][file])
+                    self.grid[rank - 1][file] = None
+
+            # check if the move would create possibility for en passant
+            self.en_passant = None
+            if piece.kind == PAWN:
+                if piece.loc[0] == 1 and rank == 3:
+                    self.en_passant = (2, file)
+                elif piece.loc[0] == 6 and rank == 4:
+                    self.en_passant = (5, file)
+            piece_taken = self.grid[rank][file]
+            self.grid[rank][file] = piece
+            self.grid[original_loc[0]][original_loc[1]] = None
+
+            piece.loc = (rank, file)
+            if self.in_check(piece.color):
+                self.grid[rank][file] = piece_taken
+                if piece_taken is not None:
+                    pieces_moved.append(piece_taken)
+                rank, file = original_loc
+                self.grid[rank][file] = piece
+                piece.loc = (rank, file)
+            else:
+                # check if just castle, if so, move the rook to the correct position
+                if piece.kind == KING:
+                    if loc == (7, 4):
+                        if piece.loc == (7, 6):
+                            pieces_moved.append(self.grid[7][7])
+                            self.grid[7][5] = self.grid[7][7]
+                            self.grid[7][7] = None
+
+                        if piece.loc == (7, 2):
+                            pieces_moved.append(self.grid[7][0])
+                            self.grid[7][3] = self.grid[7][3]
+                            self.grid[7][0] = None
+
+                    if loc == (0, 4):
+                        if piece.loc == (0, 6):
+                            pieces_moved.append(self.grid[0][7])
+                            self.grid[0][5] = self.grid[0][7]
+                            self.grid[0][7] = None
+
+                        if piece.loc == (0, 2):
+                            pieces_moved.append(self.grid[0][0])
+                            self.grid[0][3] = self.grid[0][3]
+                            self.grid[0][0] = None
+
+                # change castle availability
+                if piece.kind == KING:
+                    if piece.color == WHITE:
+                        self.w_castle = [False, False]
+                    else:
+                        self.b_castle = [False, False]
+                elif piece.color == WHITE:
+                    if original_loc == (7, 0):
+                        self.w_castle[1] = False
+                    elif original_loc == (7, 7):
+                        self.w_castle[0] = False
+                else:
+                    if original_loc == (0, 0):
+                        self.b_castle[1] = False
+                    elif original_loc == (0, 7):
+                        self.b_castle[0] = False
+
+                self.change_active_color()
+        return pieces_moved
+
+    def promote_pawn(self, pawn, kind):
+        self.grid[pawn.loc[0]][pawn.loc[1]] = Piece(kind, pawn.loc)
+        return self.grid[pawn.loc[0]][pawn.loc[1]]
+
 
 # test
 if __name__ == "__main__":
