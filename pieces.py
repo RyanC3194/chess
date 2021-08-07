@@ -1,4 +1,3 @@
-import itertools
 
 from PIL import Image, ImageTk
 
@@ -63,7 +62,7 @@ class Piece:
             image_name += "rook"
         image_name += "_image.png"
         self.image = Image.open(image_name)
-        self.image = self.image.convert('RGBA')
+        # self.image = self.image.convert('RGBA')
         self.photo_image = None
         self.id = None  # this is for the id of the picture on the canvas
 

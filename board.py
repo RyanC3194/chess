@@ -1,4 +1,6 @@
 from pieces import *
+import itertools
+
 
 
 class Board:
