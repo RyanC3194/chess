@@ -46,6 +46,7 @@ class Board:
             for p in rank:
                 if p is not None and p.color != color and loc in self.get_legal_moves(p):
                     return True
+
         return False
 
     def __str__(self):  # for debugging
@@ -141,13 +142,14 @@ class Board:
         for rank in self.grid:
             for p in rank:
                 if p is not None and p.color == color:
+
                     moves = self.get_legal_moves(p)
                     for move in moves:
                         piece_at_move = self.grid[move[0]][move[1]]
                         loc = p.loc
                         self.grid[move[0]][move[1]] = p
                         p.loc = move
-                        self.grid[p.loc[0]][p.loc[1]] = None
+                        self.grid[loc[0]][loc[1]] = None
                         if not self.in_check(color):
                             p.loc = loc
                             self.grid[move[0]][move[1]] = piece_at_move
