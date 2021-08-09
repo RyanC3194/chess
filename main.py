@@ -1,7 +1,6 @@
 from board import *
 from tkinter import Canvas, Tk
-from PIL import Image, ImageTk
-import time
+
 
 
 class game():
