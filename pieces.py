@@ -62,7 +62,7 @@ class Piece:
             image_name += "rook"
         image_name += "_image.png"
         self.image = Image.open(image_name)
-        self.image = self.image.convert('RGBA')
+        # self.image = self.image.convert('RGBA')
         self.photo_image = None
         self.id = None  # this is for the id of the picture on the canvas
 
@@ -71,6 +71,20 @@ class Piece:
         self.image = self.image.resize((w, h), Image.ANTIALIAS)
         self.photo_image = ImageTk.PhotoImage(self.image)
 
+    #return the string representation of the piece
     def __str__(self):
-        return "P,"
-        return str(self.kind) + " " + str(self.color) + " " + str(self.loc)
+        if self.kind == ROOK:
+            s = 'r'
+        elif self.kind == KNIGHT:
+            s = 'n'
+        elif self.kind == BISHOP:
+            s = 'b'
+        elif self.kind == QUEEN:
+            s = 'q'
+        elif self.kind == KING:
+            s = 'k'
+        elif self.kind == PAWN:
+            s = 'p'
+        if self.color == WHITE:
+            s = s.upper()
+        return s
