@@ -2,10 +2,9 @@ from pieces import *
 import itertools
 
 
-
 class Board:
     def __init__(self, fen=None):
-        
+
         # initialize an empty board
         self.grid = [[None for x in range(8)] for y in range(8)]  # DON'T do [[None]*8]*8 its SHALLOW COPY!
         # load the board from FEN
@@ -13,7 +12,7 @@ class Board:
         if fen is None:
             with open("./asset/starting_position.fen", 'r') as f:
                 fen = f.read()
-        placement, self.active_color, self.castle, self.en_passant, self.half_move_clock, self.full_move_clock = tuple(
+        placement, self.active_color, self.castle, en_passant, self.half_move_clock, self.full_move_clock = tuple(
             fen.split(" "))
         self.w_castle = ['K' in self.castle, 'Q' in self.castle]
         self.b_castle = ['K' in self.castle, 'Q' in self.castle]
@@ -21,6 +20,13 @@ class Board:
             self.active_color = WHITE
         else:
             self.active_color = BLACK
+
+        if en_passant == '-':
+            self.en_passant = None
+        else:
+            self.en_passant = [0,0]
+            self.en_passant[0] = en_passant[1]
+            self.en_passant[1] = ord(en_passant[0])
 
         # convert the placement string to 8x8 grid
         for rank, line in enumerate(placement.split("/")):
@@ -134,7 +140,6 @@ class Board:
                     else:
                         break
 
-
         return moves
 
     def check_mate(self, color):
@@ -243,7 +248,59 @@ class Board:
         self.grid[pawn.loc[0]][pawn.loc[1]] = Piece(kind, pawn.loc)
         return self.grid[pawn.loc[0]][pawn.loc[1]]
 
+    def perft(self, depth):
+        if depth == 0:
+            return 1
+        for file in self.grid:
+            for rank in self.grid:
+                pass
+
+    def get_fen(self):
+        fen = ""
+        for rank in self.grid:
+            empty = 0
+            for loc in rank:
+                if loc is None:
+                    empty += 1
+                else:
+                    if empty != 0:
+                        fen += str(empty)
+                        empty = 0
+                    fen += str(loc)
+            if empty != 0:
+                fen += str(empty)
+            fen += '/'
+        fen += ' '
+        if self.active_color == WHITE:
+            fen += 'w'
+        else:
+            fen += 'b'
+        fen += ' '
+        if self.w_castle[0]:
+            fen += 'K'
+        if self.w_castle[1]:
+            fen += 'Q'
+        if self.b_castle[0]:
+            fen += 'k'
+        if self.b_castle[1]:
+            fen += 'q'
+        fen += ' '
+        if self.en_passant is None:
+            fen += '-'
+        else:
+            print(self.en_passant)
+            fen += chr(self.en_passant[1] + ord('a')) + str(self.en_passant[2])
+
+        fen += ' '
+        fen += self.half_move_clock
+        fen += ' '
+        fen += self.full_move_clock
+        return fen
+
+    def __copy__(self):
+        Board(self.fen)
+
 
 # test
 if __name__ == "__main__":
-    Board()
+    print(Board().get_fen())
