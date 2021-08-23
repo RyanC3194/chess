@@ -4,7 +4,6 @@ import itertools
 
 class Board:
     def __init__(self, fen=None):
-
         # initialize an empty board
         self.grid = [[None for x in range(8)] for y in range(8)]  # DON'T do [[None]*8]*8 its SHALLOW COPY!
         # load the board from FEN
@@ -24,7 +23,7 @@ class Board:
         if en_passant == '-':
             self.en_passant = None
         else:
-            self.en_passant = [0,0]
+            self.en_passant = [0, 0]
             self.en_passant[0] = en_passant[1]
             self.en_passant[1] = ord(en_passant[0])
 
@@ -43,6 +42,7 @@ class Board:
                 else:
                     file += int(c)
 
+    # check if a given color and position is in check
     def in_check(self, color):
         piece = self.white_king if color == WHITE else self.black_king
         return self.attacked(color, piece.loc)
@@ -56,17 +56,25 @@ class Board:
 
         return False
 
-    def __str__(self):  # for debugging
+    # str representation of the board in string
+    def __str__(self):
         s = ''
         for rank in self.grid:
+            s += '|'
             for b in rank:
-                s += str(b) + " "
+                if b == None:
+                    s += " "
+                else:
+                    s += str(b)
+                s += '|'
             s += '\n'
         return s
 
+    # change the active color from black to white or white to black
     def change_active_color(self):
         self.active_color = BLACK if self.active_color == WHITE else WHITE
 
+    # for a given piece and its future position, determine if it is a legal move
     def is_legal_move(self, piece, move):
         return move in self.get_legal_moves(piece)
 
@@ -142,7 +150,8 @@ class Board:
 
         return moves
 
-    def check_mate(self, color):
+    # check if it is a check mate
+    def is_check_mate(self, color):
         if not self.in_check(color):
             return False
         for rank in self.grid:
@@ -166,6 +175,7 @@ class Board:
                         self.grid[p.loc[0]][p.loc[1]] = p
         return True
 
+    # move a piece to a given location if that move is legal
     def move(self, piece, loc):
         rank, file = loc
         pieces_moved = [piece]
@@ -244,10 +254,12 @@ class Board:
                 self.change_active_color()
         return pieces_moved
 
+    # promote the pawn to the given kind
     def promote_pawn(self, pawn, kind):
         self.grid[pawn.loc[0]][pawn.loc[1]] = Piece(kind, pawn.loc)
         return self.grid[pawn.loc[0]][pawn.loc[1]]
 
+    # return the perft result for a given deapth (for dubugging)
     def perft(self, depth):
         if depth == 0:
             return 1
@@ -255,6 +267,7 @@ class Board:
             for rank in self.grid:
                 pass
 
+    # generate the fen representation of the board
     def get_fen(self):
         fen = ""
         for rank in self.grid:
@@ -297,10 +310,7 @@ class Board:
         fen += self.full_move_clock
         return fen
 
-    def __copy__(self):
-        Board(self.fen)
-
 
 # test
 if __name__ == "__main__":
-    print(Board().get_fen())
+    print(Board())

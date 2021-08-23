@@ -23,6 +23,7 @@ class game():
         self.canvas.bind('<ButtonRelease-1>', self.on_release)
         self.window.mainloop()
 
+    # draw the chess board with pieces from self.board
     def draw_board(self):
         # draw the lines
         color = "white"
@@ -44,12 +45,14 @@ class game():
                     block.id = self.canvas.create_image(self.get_loc_center(block.loc), anchor='center',
                                                         image=block.photo_image)
 
+    # what to do when game end!
     def game_end(self):
         self.board.active_color = None
         # TODO
         print("check mated")
         pass
 
+    # The gui for promoting pawn. Also calls the Board.promote pawn with user's selection
     def promote_pawn(self, pawn):
         self.board.active_color = None
         rank, file = pawn.loc
@@ -68,6 +71,7 @@ class game():
                                                                                                                 promotion_canvas,
                                                                                                                 pawn))
 
+    # The GUI for pawn promotion selection
     def select_promotion(self, event, promotion_canvas, pawn):
         h = self.BOARD_LENGTH / 2
         if event.y < h / 4:
@@ -87,6 +91,7 @@ class game():
         p.resize_image(self.PIECE_SIZE, self.PIECE_SIZE)
         p.id = self.canvas.create_image(self.get_loc_center(p.loc), anchor='center', image=p.photo_image)
 
+    # if pressing on a piece with the correct color, set self.piece to that piece. Else self.piece is None
     def on_press(self, event):
         rank, file = self.get_mouse_loc_on_board(event.x, event.y)
         self.piece = self.board.grid[rank][file]
@@ -99,16 +104,19 @@ class game():
                 for move in moves:
                     self.highlight_square(self.get_loc_center(move))
 
+    # highlight the given square
     def highlight_square(self, loc):
         self.highlight.append(
             self.canvas.create_rectangle(loc[0] - self.BOARD_LENGTH / 16, loc[1] - self.BOARD_LENGTH / 16,
                                          loc[0] + self.BOARD_LENGTH / 16, loc[1] + self.BOARD_LENGTH / 16, fill="black",
                                          stipple="gray50"))
 
+    # if there is a piece to be stick to the mouse, call the self. stick_piece_on_cursor
     def on_hold(self, event):
         if self.piece is not None:
             self.stick_piece_on_cursor(event)
 
+    # If it is a valid move, move the piece. Otherwise put the piece back to the original position
     def on_release(self, event):
         if self.piece is not None:
             self.move(self.piece, self.get_mouse_loc_on_board(event.x, event.y))
@@ -126,12 +134,14 @@ class game():
         rank, file = loc
         return file * self.BOARD_LENGTH / 8 + self.BOARD_LENGTH / 8 / 2, rank * self.BOARD_LENGTH / 8 + self.BOARD_LENGTH / 8 / 2
 
+    # Make the given piece stick on the cursor
     def stick_piece_on_cursor(self, event):
         self.canvas.delete(self.piece.id)
         self.piece.id = self.canvas.create_image((event.x - self.PIECE_SIZE / 2, event.y - self.PIECE_SIZE / 2),
                                                  anchor='nw',
                                                  image=self.piece.photo_image)
 
+    # The gui for moving a piece. Also calls the self.Board.move function
     def move(self, piece, loc):
         self.canvas.delete(piece.id)
         pieces = self.board.move(piece, loc)
@@ -142,7 +152,7 @@ class game():
         if piece.kind == PAWN and (piece.loc[0] == 0 or piece.loc[0] == 7):
             self.promote_pawn(piece)
 
-        if self.board.check_mate(self.board.active_color):
+        if self.board.is_check_mate(self.board.active_color):
             self.game_end()
 
 
