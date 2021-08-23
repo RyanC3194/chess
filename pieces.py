@@ -64,7 +64,7 @@ class Piece:
         self.image = Image.open(image_name)
 
         # this doesn't work on Mac
-        if sys.platform != "Darwin":
+        if sys.platform != "darwin":
             self.image = self.image.convert('RGBA')
 
         self.photo_image = None
