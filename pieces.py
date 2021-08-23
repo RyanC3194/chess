@@ -1,5 +1,5 @@
-
 from PIL import Image, ImageTk
+import sys
 
 BLACK = 99
 WHITE = 88
@@ -62,7 +62,11 @@ class Piece:
             image_name += "rook"
         image_name += "_image.png"
         self.image = Image.open(image_name)
-        # self.image = self.image.convert('RGBA')
+
+        # this doesn't work on Mac
+        if sys.platform != "Darwin":
+            self.image = self.image.convert('RGBA')
+
         self.photo_image = None
         self.id = None  # this is for the id of the picture on the canvas
 
@@ -71,7 +75,7 @@ class Piece:
         self.image = self.image.resize((w, h), Image.ANTIALIAS)
         self.photo_image = ImageTk.PhotoImage(self.image)
 
-    #return the string representation of the piece
+    # return the string representation of the piece
     def __str__(self):
         if self.kind == ROOK:
             s = 'r'
