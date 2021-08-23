@@ -3,7 +3,7 @@ from tkinter import Canvas, Tk
 
 
 class game():
-    def __init__(self):
+    def __init__(self, fen=None):
         self.piece = None
         self.BOARD_LENGTH = 600
         self.PIECE_SIZE = int(self.BOARD_LENGTH / 10)
@@ -14,7 +14,16 @@ class game():
         self.canvas = Canvas(self.window, width=self.BOARD_LENGTH, height=self.BOARD_LENGTH)
         self.canvas.pack()
         self.highlight = []
-        self.board = Board()
+        self.board = Board(fen)
+
+        self.draw_board()
+
+        self.canvas.bind('<Button-1>', self.on_press)
+        self.canvas.bind('<B1-Motion>', self.on_hold)
+        self.canvas.bind('<ButtonRelease-1>', self.on_release)
+        self.window.mainloop()
+
+    def draw_board(self):
         # draw the lines
         color = "white"
         for i in range(9):
@@ -34,18 +43,6 @@ class game():
                     block.resize_image(self.PIECE_SIZE, self.PIECE_SIZE)
                     block.id = self.canvas.create_image(self.get_loc_center(block.loc), anchor='center',
                                                         image=block.photo_image)
-        self.canvas.bind('<Button-1>', self.on_press)
-        self.canvas.bind('<B1-Motion>', self.on_hold)
-        self.canvas.bind('<ButtonRelease-1>', self.on_release)
-        """
-        promotion_canvas = Canvas(window, width=BOARD_LENGTH / 8, height=BOARD_LENGTH / 2)
-        promotion_canvas.place(relx=6 / 8, rely=3/8)
-        w, h = BOARD_LENGTH / 8, BOARD_LENGTH / 2
-        pp = Piece(KNIGHT, (-1, -1), WHITE)
-        pp.resize_image(PIECE_SIZE, PIECE_SIZE)
-        promotion_canvas.create_image((w/2,h/8), anchor ='center', image=pp.photo_image)
-        """
-        self.window.mainloop()
 
     def game_end(self):
         self.board.active_color = None
