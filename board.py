@@ -5,6 +5,7 @@ import itertools
 
 class Board:
     def __init__(self, fen=None):
+        
         # initialize an empty board
         self.grid = [[None for x in range(8)] for y in range(8)]  # DON'T do [[None]*8]*8 its SHALLOW COPY!
         # load the board from FEN
