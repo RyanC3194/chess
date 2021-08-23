@@ -2,7 +2,6 @@ from board import *
 from tkinter import Canvas, Tk
 
 
-
 class game():
     def __init__(self):
         self.piece = None
@@ -14,7 +13,7 @@ class game():
 
         self.canvas = Canvas(self.window, width=self.BOARD_LENGTH, height=self.BOARD_LENGTH)
         self.canvas.pack()
-
+        self.highlight = []
         self.board = Board()
         # draw the lines
         color = "white"
@@ -61,9 +60,9 @@ class game():
         promotion_canvas.place(relx=file / 8, rely=0 if pawn.color == WHITE else 4)
         w, h = self.BOARD_LENGTH / 8, self.BOARD_LENGTH / 2
         self.promotion_choices = (Piece(KNIGHT, (w / 2, h / 8), pawn.color),
-                             Piece(BISHOP, (w / 2, h / 8 * 3), pawn.color),
-                             Piece(ROOK, (w / 2, h / 8 * 5), pawn.color),
-                             Piece(QUEEN, (w / 2, h / 8 * 7), pawn.color))
+                                  Piece(BISHOP, (w / 2, h / 8 * 3), pawn.color),
+                                  Piece(ROOK, (w / 2, h / 8 * 5), pawn.color),
+                                  Piece(QUEEN, (w / 2, h / 8 * 7), pawn.color))
         for p in self.promotion_choices:
             p.resize_image(self.PIECE_SIZE, self.PIECE_SIZE)
             p.id = promotion_canvas.create_image(p.loc, anchor='center', image=p.photo_image)
@@ -92,10 +91,22 @@ class game():
         p.id = self.canvas.create_image(self.get_loc_center(p.loc), anchor='center', image=p.photo_image)
 
     def on_press(self, event):
-        rank, file = self.get_loc_on_board(event.x, event.y)
+        rank, file = self.get_mouse_loc_on_board(event.x, event.y)
         self.piece = self.board.grid[rank][file]
-        if self.piece is not None and self.board.active_color != self.piece.color:
-            self.piece = None
+        if self.piece is not None:
+            if self.board.active_color != self.piece.color:
+                self.piece = None
+            else:
+                # show the available moves
+                moves = self.board.get_legal_moves(self.piece)
+                for move in moves:
+                    self.highlight_square(self.get_loc_center(move))
+
+    def highlight_square(self, loc):
+        self.highlight.append(
+            self.canvas.create_rectangle(loc[0] - self.BOARD_LENGTH / 16, loc[1] - self.BOARD_LENGTH / 16,
+                                         loc[0] + self.BOARD_LENGTH / 16, loc[1] + self.BOARD_LENGTH / 16, fill="black",
+                                         stipple="gray50"))
 
     def on_hold(self, event):
         if self.piece is not None:
@@ -103,11 +114,14 @@ class game():
 
     def on_release(self, event):
         if self.piece is not None:
-            self.move(self.piece, self.get_loc_on_board(event.x, event.y))
+            self.move(self.piece, self.get_mouse_loc_on_board(event.x, event.y))
         self.piece = None
+        for h in self.highlight:
+            self.canvas.delete(h)
+        self.highlight = []
 
     # return which block on board the mouse is current at
-    def get_loc_on_board(self, x, y):
+    def get_mouse_loc_on_board(self, x, y):
         return int(y / self.BOARD_LENGTH * 8), int(x / self.BOARD_LENGTH * 8)  # (rank, file)
 
     # get the center of the block the mouse is currently at
