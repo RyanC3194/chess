@@ -2,6 +2,7 @@ from pieces import *
 import itertools
 from copy import deepcopy
 
+
 class Board:
     def __init__(self, fen=None):
         # initialize an empty board
@@ -34,6 +35,7 @@ class Board:
             self.en_passant[0] = en_passant[1]
             self.en_passant[1] = ord(en_passant[0])
 
+        self.moves = []  # the moves players made (piece, orignial position, new position, piece taken)
         # convert the placement string to 8x8 grid
         for rank, line in enumerate(placement.split("/")):
             file = 0
@@ -188,16 +190,21 @@ class Board:
         rank, file = loc
         pieces_moved = [piece]
         if self.is_legal_move(piece, loc):  # if it is a legal move
+            move = [piece, piece.loc, loc, self.grid[loc[0]][loc[1]], False]
             # check if the move was en passant
             original_loc = piece.loc
             if piece.kind == PAWN and (rank, file) == self.en_passant:
                 if piece.color == WHITE:
+                    move[3] = self.grid[rank + 1][file]
+                    move[4] = True
                     pieces_moved.append(self.grid[rank + 1][file])
+                    self.grid[rank + 1][file].loc = None
                     self.grid[rank + 1][file] = None
                 else:  # if black
                     pieces_moved.append(self.grid[rank - 1][file])
+                    move[3] = self.grid[rank - 1][file]
+                    self.grid[rank - 1][file].loc = None
                     self.grid[rank - 1][file] = None
-
             # check if the move would create possibility for en passant
             self.en_passant = None
             if piece.kind == PAWN:
@@ -220,26 +227,29 @@ class Board:
             else:
                 # check if just castle, if so, move the rook to the correct position
                 if piece.kind == KING:
-                    if loc == (7, 4):
+                    if original_loc == (7, 4):
                         if piece.loc == (7, 6):
                             pieces_moved.append(self.grid[7][7])
                             self.grid[7][5] = self.grid[7][7]
                             self.grid[7][7] = None
+                            self[(7,5)].loc = (7,5)
 
                         if piece.loc == (7, 2):
                             pieces_moved.append(self.grid[7][0])
                             self.grid[7][3] = self.grid[7][3]
                             self.grid[7][0] = None
+                            self[(7,3)].loc = (7,3)
 
-                    if loc == (0, 4):
+                    if original_loc == (0, 4):
                         if piece.loc == (0, 6):
                             pieces_moved.append(self.grid[0][7])
                             self.grid[0][5] = self.grid[0][7]
                             self.grid[0][7] = None
-
+                            self[(0,5)].loc = (0,5)
                         if piece.loc == (0, 2):
                             pieces_moved.append(self.grid[0][0])
-                            self.grid[0][3] = self.grid[0][3]
+                            self.grid[0][3] = self.grid[0][0]
+                            self[(0,3)].loc = (0,3)
                             self.grid[0][0] = None
 
                 # change castle availability
@@ -260,6 +270,7 @@ class Board:
                         self.b_castle[0] = False
 
                 self.change_active_color()
+            self.moves.append(tuple(move))  # update the move list
         return pieces_moved
 
     # promote the pawn to the given kind
@@ -317,7 +328,6 @@ class Board:
         if self.en_passant is None:
             fen += '-'
         else:
-            print(self.en_passant)
             fen += chr(self.en_passant[1] + ord('a')) + str(self.en_passant[2])
 
         fen += ' '
@@ -325,6 +335,55 @@ class Board:
         fen += ' '
         fen += self.full_move_clock
         return fen
+
+    def unmove(self):
+        if len(self.moves) == 0:
+            return
+        piece, original_loc, new_loc, piece_taken, en_passant = self.moves[-1]
+        self.moves.pop(-1)
+        piece.loc = original_loc
+
+        if en_passant:
+            rank, file = new_loc
+            if piece_taken.color == WHITE:
+                rank = 6
+                piece_taken= (rank, file)
+                self[(rank, file)] = piece_taken
+            else:
+                rank = 1
+                piece_taken.loc = (rank, file)
+                self[(rank, file)] = piece_taken
+        else:
+            # last move was a castle move
+            if piece.kind == KING and abs(original_loc[1] - new_loc[1]) > 1:
+                if new_loc == (0, 6):
+                    self[(0,7)] = self[(0,5)]
+                    self[(0,5)] = None
+                    self[(0,7)].loc = (0,7)
+                if new_loc == (0,2):
+                    self[(0, 0)] = self[(0, 3)]
+                    self[(0,3)] = None
+                    self[(0,0)].loc = (0,0)
+                if new_loc == (7, 6):
+                    self[(7,7)] = self[(7,5)]
+                    self[(7,5)] = None
+                    self[(7,7)].loc = (7,7)
+                if new_loc == (0,2):
+                    self[(7, 0)] = self[(7, 3)]
+                    self[(7,3)] = None
+                    self[(7,0)].loc = (7,0)
+            if piece_taken is not None:
+                piece_taken.loc = new_loc
+            self[original_loc] = piece
+            self[new_loc] = piece_taken
+
+        self.change_active_color()
+
+    def __getitem__(self, loc):
+        return self.grid[loc[0]][loc[1]]
+
+    def __setitem__(self, loc, piece):
+        self.grid[loc[0]][loc[1]] = piece
 
 
 # test

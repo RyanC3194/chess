@@ -31,6 +31,18 @@ class game():
         self.fen_input_entry.grid(row=1)
         self.fen_input_label = Label(self.frame, text="Input fen here").grid(row=0)
         self.fen_input_button = Button(self.frame, text="Enter", command=self.board_from_fen).grid(row=3)
+        self.restart = Button(self.frame, text="Restart", command=self.restart).grid(row=4)
+        self.unmove = Button(self.frame, text="Unmove", command=self.unmove).grid(row=5)
+
+    def unmove(self):
+        self.board.unmove()
+        self.draw_board()
+
+
+    # restart the game
+    def restart(self):
+        self.board = Board()
+        self.draw_board()
 
     # load a new board from the given fen. fen is stored in self.fren
     def board_from_fen(self):
@@ -164,7 +176,8 @@ class game():
         pieces = self.board.move(piece, loc)
         for p in pieces:
             self.canvas.delete(p.id)
-            p.id = self.canvas.create_image(self.get_loc_center(p.loc), anchor='center', image=p.photo_image)
+            if p.loc is not None:
+                p.id = self.canvas.create_image(self.get_loc_center(p.loc), anchor='center', image=p.photo_image)
 
         if piece.kind == PAWN and (piece.loc[0] == 0 or piece.loc[0] == 7):
             self.promote_pawn(piece)
