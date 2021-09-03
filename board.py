@@ -1,6 +1,6 @@
 from pieces import *
 import itertools
-
+from copy import deepcopy
 
 class Board:
     def __init__(self, fen=None):
@@ -267,13 +267,21 @@ class Board:
         self.grid[pawn.loc[0]][pawn.loc[1]] = Piece(kind, pawn.loc)
         return self.grid[pawn.loc[0]][pawn.loc[1]]
 
-    # return the perft result for a given deapth (for dubugging)
+    # return the perft result for a given depth (for ddebugging
     def perft(self, depth):
         if depth == 0:
             return 1
-        for file in self.grid:
-            for rank in self.grid:
-                pass
+        nodes = 0
+        for rank in self.grid:
+            for p in rank:
+                if p is not None and p.color == self.active_color:
+                    legal_moves = self.get_legal_moves(p)
+                    for move in legal_moves:
+                        new_board = deepcopy(self)
+                        new_board.move(p, move)
+                        nodes += new_board.perft(depth - 1)
+
+        return nodes
 
     # generate the fen representation of the board
     def get_fen(self):
@@ -321,4 +329,4 @@ class Board:
 
 # test
 if __name__ == "__main__":
-    print(Board())
+    print(Board().perft(2))
