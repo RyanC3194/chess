@@ -12,27 +12,33 @@ class game():
         self.window.title('Chess!')
 
         self.canvas = Canvas(self.window, width=self.BOARD_LENGTH, height=self.BOARD_LENGTH)
-        self.canvas.pack(side = 'left')
+        self.canvas.pack(side='left')
         self.highlight = []
         self.board = Board(fen)
 
         self.draw_board()
-
+        self.create_user_interface()
         self.canvas.bind('<Button-1>', self.on_press)
         self.canvas.bind('<B1-Motion>', self.on_hold)
         self.canvas.bind('<ButtonRelease-1>', self.on_release)
-
-        self.frame = Frame(self.window, width=self.BOARD_LENGTH / 2, height=self.BOARD_LENGTH)
-        self.frame.pack(side = 'right')
-        self.fen_input_entry = Entry(self.frame)
-        self.fen_input_entry.grid(row = 1)
-        self.fen_input_label = Label(self.frame, text = "Input fen here").grid(row=0)
-        self.fen_input_button = Button(self.frame, text = "Enter", command = self.board_from_fen).grid(row=3)
         self.window.mainloop()
+
+    def create_user_interface(self):
+        # user interface
+        self.frame = Frame(self.window, width=self.BOARD_LENGTH / 2, height=self.BOARD_LENGTH)
+        self.frame.pack(side='right')
+        self.fen_input_entry = Entry(self.frame)
+        self.fen_input_entry.grid(row=1)
+        self.fen_input_label = Label(self.frame, text="Input fen here").grid(row=0)
+        self.fen_input_button = Button(self.frame, text="Enter", command=self.board_from_fen).grid(row=3)
 
     # load a new board from the given fen. fen is stored in self.fren
     def board_from_fen(self):
-        print(self.fen_input_entry)
+        try:
+            self.board = Board(self.fen_input_entry.get())
+        except:
+            print("Invalid fen")
+        self.draw_board()
 
     # draw the chess board with pieces from self.board
     def draw_board(self):

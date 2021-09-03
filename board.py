@@ -11,14 +11,21 @@ class Board:
         if fen is None:
             with open("./asset/starting_position.fen", 'r') as f:
                 fen = f.read()
-        placement, self.active_color, self.castle, en_passant, self.half_move_clock, self.full_move_clock = tuple(
-            fen.split(" "))
+        try:
+            placement, self.active_color, self.castle, en_passant, self.half_move_clock, self.full_move_clock = tuple(
+                fen.split(" "))
+        except:
+            raise Exception("Invalid fen")
+
         self.w_castle = ['K' in self.castle, 'Q' in self.castle]
         self.b_castle = ['K' in self.castle, 'Q' in self.castle]
+
         if self.active_color == 'w':
             self.active_color = WHITE
-        else:
+        elif self.active_color == 'b':
             self.active_color = BLACK
+        else:
+            raise Exception("Invalid active color in fen")
 
         if en_passant == '-':
             self.en_passant = None
@@ -39,6 +46,7 @@ class Board:
                         self.black_king = self.grid[rank][file]
                     file += 1
 
+                # number of space
                 else:
                     file += int(c)
 
